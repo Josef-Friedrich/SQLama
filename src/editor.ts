@@ -1,5 +1,11 @@
 import * as monaco from 'monaco-editor'
 
+declare global {
+  interface Window {
+    MonacoEnvironment: any
+  }
+}
+
 // https://github.com/vitejs/vite/discussions/1791
 self.MonacoEnvironment = {
   getWorker: async function () {

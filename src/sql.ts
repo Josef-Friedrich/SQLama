@@ -134,10 +134,21 @@ class DatabaseQuery {
   }
 
   public getSqliteVersion (): string {
-    const result = this.db.exec(
+    const results = this.db.exec(
       'SELECT sqlite_version() AS version'
     )
-    const version = result[0].values[0][0]
+    let version: string | null = null
+    const result = results[0]
+    if (result != null){
+      const values = result.values[0]
+
+      if (values != null) {
+        const value = values[0]
+        if (value != null) {
+          version = String(value)
+        }
+      }
+    }
 
     if (version == null) {
       throw new Error(`Could not get SQLite version`)
