@@ -51,7 +51,7 @@ const SQL = await initSqlJs({
   // You can omit locateFile completely when running in node
   // `node_modules/sql.js/dist/${file}`
   // `https://sql.js.org/dist/${file}`
-  locateFile: file => `https://sql.js.org/dist/${file}`
+  locateFile: file => `./node_modules/sql.js/dist/${file}`
 })
 
 class DatabaseQuery {
