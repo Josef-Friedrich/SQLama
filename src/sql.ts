@@ -9,7 +9,7 @@ export class ColumnSchema {
   defaultValue: any
   primaryKey: boolean
 
-  constructor (result: Record<string, CellData>) {
+  constructor(result: Record<string, CellData>) {
     this.name = String(result.name)
     this.dataType = String(result.type)
     this.notNull = result.notnull == 1
@@ -41,7 +41,7 @@ export interface TableData extends ResultData {
   name: string
 }
 
-async function fetchDumpFile (url: string): Promise<string> {
+async function fetchDumpFile(url: string): Promise<string> {
   const response = await fetch(url)
   return response.text()
 }
@@ -51,17 +51,22 @@ const SQL = await initSqlJs({
   // You can omit locateFile completely when running in node
   // `node_modules/sql.js/dist/${file}`
   // `https://sql.js.org/dist/${file}`
-  locateFile: file => `./node_modules/sql.js/dist/${file}`
+  locateFile(file) {
+    if (typeof process === 'undefined') {
+      return `https://sql.js.org/dist/${file}`
+    }
+    return `./node_modules/sql.js/dist/${file}`
+  }
 })
 
 class DatabaseQuery {
   db: Database
 
-  constructor () {
+  constructor() {
     this.db = new SQL.Database()
   }
 
-  public async open (dataOrUrl: string | ArrayLike<number>) {
+  public async open(dataOrUrl: string | ArrayLike<number>) {
     let sqlDump: string | undefined = undefined
     let binaryData: ArrayLike<number> | undefined = undefined
 
@@ -85,7 +90,7 @@ class DatabaseQuery {
     }
   }
 
-  public exec (sql: string, columnsToStore: number = 50): ResultData {
+  public exec(sql: string, columnsToStore: number = 50): ResultData {
     const statement = this.db.prepare(sql)
     const columns = statement.getColumnNames()
     const rows: RowData[] = []
@@ -99,7 +104,7 @@ class DatabaseQuery {
     return { columns, rows, allRowsCount: counter }
   }
 
-  public get tableNames (): string[] {
+  public get tableNames(): string[] {
     const names: string[] = []
     const results = this.db.exec(
       'SELECT name FROM sqlite_schema WHERE type = "table" AND name NOT LIKE "sqlite_%"'
@@ -112,7 +117,7 @@ class DatabaseQuery {
     return names
   }
 
-  private getColumnsByTable (tableName: string): ColumnSchema[] {
+  private getColumnsByTable(tableName: string): ColumnSchema[] {
     const statement = this.db.prepare(`PRAGMA TABLE_INFO('${tableName}')`)
     const columns: ColumnSchema[] = []
     while (statement.step()) {
@@ -121,7 +126,7 @@ class DatabaseQuery {
     return columns
   }
 
-  public get databaseSchema (): DatabaseSchema {
+  public get databaseSchema(): DatabaseSchema {
     const tables: TableSchema[] = []
     for (const tableName of this.tableNames) {
       const table = {
@@ -133,13 +138,11 @@ class DatabaseQuery {
     return { tables }
   }
 
-  public getSqliteVersion (): string {
-    const results = this.db.exec(
-      'SELECT sqlite_version() AS version'
-    )
+  public getSqliteVersion(): string {
+    const results = this.db.exec('SELECT sqlite_version() AS version')
     let version: string | null = null
     const result = results[0]
-    if (result != null){
+    if (result != null) {
       const values = result.values[0]
 
       if (values != null) {
